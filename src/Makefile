@@ -12,12 +12,12 @@ HEADUFCONFIG = ../lib/UFconfig/
 HEADMETIS = ../lib/metis-5.0pre2/include/
 LIBMETIS = ../lib/metis-5.0pre2/libmetis.a
 
-haruhi-pg: haruhi_lu.o mempool.o sparsedoublematrix.o solvesparsedoublematrix.o dqueue.o partition_double.o mymatrix.o parallel_common.o parallel_lu_double.o postorder.o parse_spice.o union_find.o parallel_pcg_double.o parallel.o
-	gcc -static -o ../bin/haruhi-pg -O2 haruhi_lu.o mempool.o sparsedoublematrix.o solvesparsedoublematrix.o dqueue.o partition_double.o mymatrix.o parallel_lu_double.o parallel_common.o postorder.o parse_spice.o union_find.o parallel_pcg_double.o parallel.o ${LIBGDSL} ${LIBAMD} ${LIBMETIS} ${LIBGSL} -lm -lpthread 
+haruhi-pg: haruhi_pg.o mempool.o sparsedoublematrix.o solvesparsedoublematrix.o dqueue.o partition_double.o mymatrix.o parallel_common.o parallel_lu_double.o postorder.o parse_spice.o union_find.o parallel_pcg_double.o parallel.o
+	gcc -static -o ../bin/haruhi-pg -O2 haruhi_pg.o mempool.o sparsedoublematrix.o solvesparsedoublematrix.o dqueue.o partition_double.o mymatrix.o parallel_lu_double.o parallel_common.o postorder.o parse_spice.o union_find.o parallel_pcg_double.o parallel.o ${LIBGDSL} ${LIBAMD} ${LIBMETIS} ${LIBGSL} -lm -lpthread 
 parse_spice.o: parse_spice.c sparsedoublematrix.h union_find.h
 	gcc -c -O2 parse_spice.c
-haruhi_lu.o: haruhi_lu.c mempool.h sparsedoublematrix.h solvesparsedoublematrix.h parallel_lu_double.h parse_spice.h parallel_pcg_double.h partition_double.h haruhi_lu.h
-	gcc -c -O2 -I ${HEADGSL} -I ${HEADGDSL} -I ${HEADAMD} -I ${HEADUFCONFIG} -I ${HEADMETIS} haruhi_lu.c
+haruhi_pg.o: haruhi_pg.c mempool.h sparsedoublematrix.h solvesparsedoublematrix.h parallel_lu_double.h parse_spice.h parallel_pcg_double.h partition_double.h haruhi_pg.h
+	gcc -c -O2 -I ${HEADGSL} -I ${HEADGDSL} -I ${HEADAMD} -I ${HEADUFCONFIG} -I ${HEADMETIS} haruhi_pg.c
 mempool.o: mempool.c mempool.h dqueue.h
 	gcc -c -O2 mempool.c -std=c99
 mymatrix.o: mymatrix.c mymatrix.h
