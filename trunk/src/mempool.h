@@ -46,9 +46,6 @@ typedef struct MempoolSet MempoolSet;
 
 
 // =====================================================================
-MempoolSet * _pool;
-MempoolSet ** _poolList;
-int _poolListSize;
 
 //void createMempoolSet(const int minBlockSize,const int numOfMempool,const int hugeBlockSize,const int *const numOfBlockList,const int poolListSize);
 void createMempoolSet(const int minBlockSize,const int numOfMempool,const int *const numOfBlockList,const int poolListSize);
@@ -66,11 +63,5 @@ void retPidMempoolSet(void *data, const int blockSize,const int pid);
 void dumpMempoolSet(FILE *fp);
 void usageMempoolSet(FILE *fp);
 
-
-#else
-
-extern MempoolSet *_pool;
-extern MempoolSet ** _poolList;
-extern int _poolListSize;
 
 #endif

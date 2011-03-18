@@ -1,11 +1,16 @@
 #include "mempool.h"
 
 
+static MempoolSet * _pool = NULL;
+static MempoolSet ** _poolList = NULL;
+static int _poolListSize = 0;
+
+
 static const int _2M = 2*1024*1024;
 static const int _4M = 4*1024*1024;
 static const int _8M = 8*1024*1024;
 
-
+/*
 static int int_min(const int a,const int b)
 {
 	if(a<b) return a;
@@ -18,6 +23,7 @@ static int int_max(const int a,const int b)
 	if(a<b) return b;
 	else return a;
 }
+*/
 
 //==================================================
 
@@ -39,7 +45,6 @@ static void dumpMempool(FILE *fp,const Mempool *pool)
 
 static Mempool *createMempool(const char *poolName,const int blockSize,const int numOfBlock)
 {
-	int i;
 	Mempool *pool = (Mempool *)malloc(sizeof(Mempool));
 	strcpy(pool->poolName,poolName);
 	pool->blockSize = blockSize;
@@ -64,7 +69,6 @@ static Mempool *createMempool(const char *poolName,const int blockSize,const int
 
 static void freeMempool(Mempool *pool)
 {	
-	int i;
 	Dqueue *dqueue = pool->dqueue;
 	while(!isEmptyDqueue(dqueue))
 	{
