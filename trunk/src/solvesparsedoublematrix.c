@@ -91,14 +91,12 @@ void iluSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const Sp
 
 
 
-
+/*
 void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const SparseDoubleMatrix *a,const int pid,const double tol)
 {
 	// init & alloc
 	int i,j;
 	double element = 0.0;
-//	double *colNorm = getPidMempoolSet(a->totalCol*sizeof(double),pid);
-//	for(i=0;i<a->totalCol;i++) colNorm[i] = getColNorm(a,i);
 		
 	clearPidSparseDoubleMatrix(l,pid);
 	clearPidSparseDoubleMatrix(u,pid);
@@ -137,8 +135,97 @@ void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const
 			eachRow = next;
 		}
 	}
-	
-//	retPidMempoolSet(colNorm,a->totalCol*sizeof(double),pid);
+}
+*/
+
+
+
+static void copy_ai_to_ui(SparseDoubleMatrix *u,const SparseDoubleMatrix *a,const int i,const int pid)
+{
+	const SparseDoubleElement *ai_ptr = a->rowIndex[i]->rowLink;
+	while(ai_ptr!=NULL)
+	{
+		setPidSparseDoubleMatrix(u,ai_ptr->data,i,ai_ptr->col,pid);
+		ai_ptr = ai_ptr->rowLink;
+	}
+}
+
+
+static void copy_ai_to_buf(double *buf,const int bufSize,const SparseDoubleMatrix *a,const int i)
+{
+	memset(buf,0,bufSize*sizeof(double));
+	const SparseDoubleElement *ai_ptr = a->rowIndex[i]->rowLink;
+	while(ai_ptr!=NULL)
+	{
+		buf[ai_ptr->col] = ai_ptr->data;
+		ai_ptr = ai_ptr->rowLink;
+	}
+}
+
+
+
+static void copy_buf_to_ui(SparseDoubleMatrix *u,const int i,const double *buf,const int bufSize,const int pid)
+{
+	int idx = 0;
+	for(idx=0;idx<bufSize;idx++)
+	{
+		if(buf[idx]!=0) setPidSparseDoubleMatrix(u,buf[idx],i,idx,pid);
+	}
+}
+
+
+
+
+void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const SparseDoubleMatrix *a,const int pid,const double tol)
+{
+	// init & alloc
+	int i,j;
+	double *buf = getPidMempoolSet(a->totalCol*sizeof(double),pid);
+	memset(buf,0,a->totalCol*sizeof(double));
+	clearPidSparseDoubleMatrix(l,pid);
+	clearPidSparseDoubleMatrix(u,pid);
+	for(i=0;i<a->totalRow;i++) // for each row to eliminate
+	{
+//		fprintf(stderr,"%d begin\n",i);
+		setPidSparseDoubleMatrix(l,1.0,i,i,pid);
+		copy_ai_to_ui(u,a,i,pid);
+		for(j=0;j<i;j++) // for each row before row_i
+		{
+			const SparseDoubleElement *ui_ptr = u->rowIndex[i]->rowLink;
+			const SparseDoubleElement *uj_ptr = u->rowIndex[j]->rowLink;
+			if(ui_ptr->col == uj_ptr->col)
+			{
+				const double scale = ui_ptr->data / uj_ptr->data;
+				setPidSparseDoubleMatrix(l,scale,i,j,pid);
+				while(uj_ptr!=NULL && ui_ptr!=NULL)
+				{
+					if(uj_ptr->col < ui_ptr->col)
+					{
+						setPidSparseDoubleMatrix(u,-scale*uj_ptr->data,i,uj_ptr->col,pid);
+						uj_ptr = uj_ptr->rowLink;
+					}
+					else if(uj_ptr->col > ui_ptr->col)
+					{
+						ui_ptr = ui_ptr->rowLink;
+					}
+					else
+					{
+						setPidSparseDoubleMatrix(u,ui_ptr->data-scale*uj_ptr->data,i,uj_ptr->col,pid);
+						ui_ptr = ui_ptr->rowLink;
+						uj_ptr = uj_ptr->rowLink;
+					}
+				}
+				while(uj_ptr!=NULL)  // insert the remaining of uj
+				{
+					setPidSparseDoubleMatrix(u,-scale*uj_ptr->data,i,uj_ptr->col,pid);
+					uj_ptr = uj_ptr->rowLink;
+				}
+				delPidSparseDoubleMatrix(u,i,j,pid);
+			}
+		}
+//		fprintf(stderr,"%d end\n",i);
+	}
+	retPidMempoolSet(buf,a->totalCol*sizeof(double),pid);
 }
 
 
