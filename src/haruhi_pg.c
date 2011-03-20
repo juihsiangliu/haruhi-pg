@@ -380,7 +380,26 @@ static InputPar parse_argv(int argc,char *argv[])
 }
 
 
+/*
+static void test()
+{
+	SparseDoubleMatrix *mtx = createSparseDoubleMatrix(3,3);
+	SparseDoubleMatrix *l = createSparseDoubleMatrix(3,3);
+	SparseDoubleMatrix *u = createSparseDoubleMatrix(3,3);
 
+	setSparseDoubleMatrix(mtx,4.0,0,0);
+	setSparseDoubleMatrix(mtx,2.0,1,0);
+	setSparseDoubleMatrix(mtx,2.0,0,1);
+	setSparseDoubleMatrix(mtx,1.0,0,2);
+	setSparseDoubleMatrix(mtx,1.0,2,0);
+	setSparseDoubleMatrix(mtx,3.0,1,1);
+	setSparseDoubleMatrix(mtx,4.0,2,2);
+
+	iluPidSparseDoubleMatrix(l,u,mtx,0,0);
+	dumpSparseDoubleMatrix(stderr,l);
+	dumpSparseDoubleMatrix(stderr,u);
+}
+*/
 
 
 int main(int argc, char *argv[])
@@ -393,7 +412,6 @@ int main(int argc, char *argv[])
 //	createMempoolSet(16,26,list,512); // 0 is used for "main thread", threadNum+1 is used for "extra-root thread"
 
 //=======================================================
-
 	if(argc == 1)
 	{
 		int thread = 1;
