@@ -151,6 +151,8 @@ static void copy_ai_to_ui(SparseDoubleMatrix *u,const SparseDoubleMatrix *a,cons
 }
 
 
+
+
 static void copy_ai_to_buf(double *buf,const int bufSize,const SparseDoubleMatrix *a,const int i)
 {
 	memset(buf,0,bufSize*sizeof(double));
@@ -174,6 +176,21 @@ static void copy_buf_to_ui(SparseDoubleMatrix *u,const int i,const double *buf,c
 }
 
 
+static int first_nnz_in_buf(double *val,const double *buf,const int bufSize)
+{
+	int idx = 0;
+	for(idx=0;idx<bufSize;idx++)
+	{
+		if(buf[idx]!=0) 
+		{
+			*val = buf[idx];
+			return idx;
+		}
+	}
+	*val = 0;
+	return idx;
+}
+
 
 
 void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const SparseDoubleMatrix *a,const int pid,const double tol)
@@ -181,49 +198,29 @@ void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const
 	// init & alloc
 	int i,j;
 	double *buf = getPidMempoolSet(a->totalCol*sizeof(double),pid);
-	memset(buf,0,a->totalCol*sizeof(double));
 	clearPidSparseDoubleMatrix(l,pid);
 	clearPidSparseDoubleMatrix(u,pid);
 	for(i=0;i<a->totalRow;i++) // for each row to eliminate
 	{
-//		fprintf(stderr,"%d begin\n",i);
 		setPidSparseDoubleMatrix(l,1.0,i,i,pid);
-		copy_ai_to_ui(u,a,i,pid);
+		copy_ai_to_buf(buf,a->totalCol,a,i);
 		for(j=0;j<i;j++) // for each row before row_i
 		{
-			const SparseDoubleElement *ui_ptr = u->rowIndex[i]->rowLink;
+			double ui;
 			const SparseDoubleElement *uj_ptr = u->rowIndex[j]->rowLink;
-			if(ui_ptr->col == uj_ptr->col)
+			if(first_nnz_in_buf(&ui,buf,a->totalCol) == uj_ptr->col)
 			{
-				const double scale = ui_ptr->data / uj_ptr->data;
+				const double scale = ui / uj_ptr->data;
 				setPidSparseDoubleMatrix(l,scale,i,j,pid);
-				while(uj_ptr!=NULL && ui_ptr!=NULL)
+				while(uj_ptr!=NULL)
 				{
-					if(uj_ptr->col < ui_ptr->col)
-					{
-						setPidSparseDoubleMatrix(u,-scale*uj_ptr->data,i,uj_ptr->col,pid);
-						uj_ptr = uj_ptr->rowLink;
-					}
-					else if(uj_ptr->col > ui_ptr->col)
-					{
-						ui_ptr = ui_ptr->rowLink;
-					}
-					else
-					{
-						setPidSparseDoubleMatrix(u,ui_ptr->data-scale*uj_ptr->data,i,uj_ptr->col,pid);
-						ui_ptr = ui_ptr->rowLink;
-						uj_ptr = uj_ptr->rowLink;
-					}
-				}
-				while(uj_ptr!=NULL)  // insert the remaining of uj
-				{
-					setPidSparseDoubleMatrix(u,-scale*uj_ptr->data,i,uj_ptr->col,pid);
+					buf[uj_ptr->col] -= scale*uj_ptr->data;
 					uj_ptr = uj_ptr->rowLink;
 				}
-				delPidSparseDoubleMatrix(u,i,j,pid);
+				buf[j] = 0.0;
 			}
 		}
-//		fprintf(stderr,"%d end\n",i);
+		copy_buf_to_ui(u,i,buf,a->totalCol,pid);
 	}
 	retPidMempoolSet(buf,a->totalCol*sizeof(double),pid);
 }
