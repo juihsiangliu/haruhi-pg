@@ -91,7 +91,7 @@ void iluSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const Sp
 
 
 
-/*
+
 void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const SparseDoubleMatrix *a,const int pid,const double tol)
 {
 	// init & alloc
@@ -136,8 +136,8 @@ void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const
 		}
 	}
 }
-*/
 
+/*
 
 
 static void copy_ai_to_ui(SparseDoubleMatrix *u,const SparseDoubleMatrix *a,const int i,const int pid)
@@ -225,7 +225,7 @@ void iluPidSparseDoubleMatrix(SparseDoubleMatrix *l, SparseDoubleMatrix *u,const
 	retPidMempoolSet(buf,a->totalCol*sizeof(double),pid);
 }
 
-
+*/
 
 
 int symboic_nnz(const SparseDoubleMatrix *a)
