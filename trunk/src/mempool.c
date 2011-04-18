@@ -223,13 +223,15 @@ static void *getMempoolSetKernel(MempoolSet *ptr,const int blockSize)
 	}
 	else
 	{
+//		ret = malloc(blockSize);
+		
 		const double lgBlockSize = log2(blockSize);
 		int index = ceil(lgBlockSize - ptr->lgMinBlockSize);
 		if(index < 0) index = 0;
 		ret = getMempool(ptr->poolSet[index]);
+		
 	}
 
-//	memset(ret,0,sizeof(blockSize));
 	return ret;
 }
 
@@ -248,6 +250,8 @@ static void retMempoolSetKernel(MempoolSet *ptr,void *data, const int blockSize)
 	}
 	else
 	{
+//		free(data);
+		
 		const double lgBlockSize = log2(blockSize);
 		int index = ceil(lgBlockSize - ptr->lgMinBlockSize);
 		if(index < 0) index = 0;
