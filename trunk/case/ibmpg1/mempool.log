@@ -1,7 +1,7 @@
 poolListIndex: 0
 	pool: 0 count: 0 queueSize:0
 	pool: 1 count: 0 queueSize:0
-	pool: 2 count: 0 queueSize:0
+	pool: 2 count: 0 queueSize:512
 	pool: 3 count: 0 queueSize:524288
 	pool: 4 count: 0 queueSize:8
 	pool: 5 count: 0 queueSize:4
@@ -14,7 +14,7 @@ poolListIndex: 0
 	pool:12 count: 0 queueSize:0
 	pool:13 count: 0 queueSize:0
 	pool:14 count: 0 queueSize:0
-	pool:15 count: 0 queueSize:4
+	pool:15 count: 0 queueSize:8
 	pool:16 count: 0 queueSize:8
 	pool:17 count: 0 queueSize:4
 	pool:18 count: 0 queueSize:4
