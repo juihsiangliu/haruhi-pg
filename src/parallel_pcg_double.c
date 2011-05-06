@@ -16,22 +16,26 @@ static double get_abs_max(const double *vec,const int size)
 
 
 
-static int violate_max_error(const double *vec,const int size,const double tol)
+
+static double get_abs_mean(const double *vec,const int size)
 {
-/*
 	int i;
-	double max = 0.0;
+	double sum = 0.0;
 	for(i=0;i<size;i++)
 	{
 		const double val = fabs(vec[i]);
-		if( val > max ) max = val;
+		sum += val;
 	}
-//	fprintf(stderr,"err = %g\n",max);
-	if(max < tol) return 0;
-	else return 1;
-*/
-	const double max_err = get_abs_max(vec,size);
-	if(max_err < tol) return 0;
+	return sum / size;
+}
+
+
+
+
+
+static int violate_max_error(const double *vec,const int size,const double tol)
+{
+	if(get_abs_max(vec,size) < tol) return 0;
 	else return 1;
 }
 
@@ -64,7 +68,7 @@ static int set_pcg_goal_partition(const SparseDoubleMatrix *mtx)
 	int goalPartition;
 	int totalRow = mtx->totalRow;
 
-	if(totalRow < 2000000) goalPartition = 8;
+	if(totalRow < 2000000) goalPartition = 16;
 	else if(totalRow < 4000000) goalPartition = 16;
 	else if(totalRow < 8000000) goalPartition = 32;
 	else if(totalRow < 16000000) goalPartition = 64;
@@ -84,9 +88,13 @@ static int set_pcg_goal_partition(const SparseDoubleMatrix *mtx)
 // use ILU
 void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const int threadNum,enum OOCFlag oocFlag,enum OrderMethod orderMethod)
 {
+	FILE *fp1 = fopen("mean_error.txt","w");
+	FILE *fp2 = fopen("max_error.txt","w");
+
 	time_t t1,t2;
-	const double tol = 1e-3;
-	const double max_err = 1e-5;
+	const double tol = 1e-4;
+//	const double max_err = 1e-5;
+	const double max_err = 1e-4;
 
 	CSR_SparseDoubleMatrix *a_csr = sparse2CSR(a,0);
 	SparseDoubleMatrix *p = createSparseDoubleMatrix(a->totalRow,a->totalCol);
@@ -112,6 +120,11 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 		SparseDoubleMatrix *u = createSparseDoubleMatrix(a->totalRow,a->totalCol);
 		iluSparseDoubleMatrix(l,u,aRefine,tol);
 		freeSparseDoubleMatrix(aRefine);
+
+		// un-comment following to perform CG
+//		identitySparseDoubleMatrix(l);
+//		identitySparseDoubleMatrix(u);
+		
 		l_csr = sparse2CSR(l,0);
 		freeSparseDoubleMatrix(l);
 		u_csr = sparse2CSR(u,0);
@@ -125,13 +138,14 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 		const int goalPartition = set_pcg_goal_partition(a);
 		// construct elimination tree
 		ParallelETree *tree = createParallelETree(goalPartition*4);
+		SparseDoubleMatrix *aRefine = partitionSparseDoubleMatrix(p,pTrans,tree,a,goalPartition,oocFlag);
 		time(&t2);
 		fprintf(stderr,"reorder time: %g\n",difftime(t2,t1));
 		time(&t1);
-		SparseDoubleMatrix *aRefine = partitionSparseDoubleMatrix(p,pTrans,tree,a,goalPartition,oocFlag);
 		SparseDoubleMatrix *l = createSparseDoubleMatrix(a->totalRow,a->totalRow);
 		SparseDoubleMatrix *u = createSparseDoubleMatrix(a->totalRow,a->totalCol);
 		oocInfoList = parallelILUDouble(l,u,tree,aRefine,p,threadNum,tol,oocFlag);	
+		fprintf(stderr,"a->nnz:%d l->nnz:%d\n",aRefine->nnz,l->nnz);
 		freeParallelETree(tree);
 		if(ic == oocFlag)
 		{
@@ -209,7 +223,10 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 		// x_next = x_now + alpha * p
 		for(i=0;i<n;i++) xAfter[i] = xBefore[i] + alpha*pBefore[i];
 		// r_next = r_current - alpha * Ap
-		for(i=0;i<n;i++) rAfter[i] = rBefore[i] - alpha*Ap[i];	
+		for(i=0;i<n;i++) rAfter[i] = rBefore[i] - alpha*Ap[i];
+
+	 	fprintf(fp1,"%g\n",get_abs_mean(rAfter,n));
+	 	fprintf(fp2,"%g\n",get_abs_max(rAfter,n));
 		// if r_next is small enough , break
 		if(!violate_max_error(rAfter,n,max_err) || (k == n-1))
 		{
@@ -261,5 +278,8 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 	if(k!=n-1) fprintf(stderr,"pcg converage in iteration: %d\n",k);
 	else fprintf(stderr,"pcg can not converge until max iteration: %d\n",k);
 
+
+	fclose(fp1);
+	fclose(fp2);
 }
 

@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
 	{
 		time_t t1,t2;
 		time(&t1);
-		int thread = 1;
+		const int thread = 4;
 		SpiceMtx *spicePtr = parseSpice(argv[1]);
 		spice_input_file(spicePtr,thread);
 		freeSpiceMtx(spicePtr);
@@ -432,15 +432,18 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		time_t t1,t2;
+		time_t t1,t2,readBegin,readEnd;
 		time(&t1);
 		InputPar ret = parse_argv(argc,argv);
 		fprintf(stderr,"-ooc_flag = %d [ic:0 ooc:1 undef:2]\n",ret.oocFlag);
 		fprintf(stderr,"-solve_method = %d [direct:0 iterative:1]\n",ret.solveMethod);
 		fprintf(stderr,"-order_method = %d [undef:0 metis:1 amd:2]\n",ret.orderMethod);
 		fprintf(stderr,"-thread = %d\n",ret.threadNum);
-
+	
+		time(&readBegin);
 		SpiceMtx *spicePtr = parseSpice(argv[1]);
+		time(&readEnd);
+		fprintf(stderr,"parse time:%g\n",difftime(readEnd,readBegin));
 		if(ret.solveMethod == direct)
 		{
 			if(ret.orderMethod == orderAmd) spice_input_file_direct_amd(spicePtr);
