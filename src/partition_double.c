@@ -1072,7 +1072,7 @@ static void paritionMetis(EliminationTree *tree, const SparseDoubleMatrix *a,con
 	retMempoolSet(adjncy,sizeof(idxtype)*(a->nnz-a->totalRow));
 	retMempoolSet(vwgt,sizeof(idxtype)*(a->totalRow));
 	time(&t2);
-//	fprintf(stderr,"kernel metis time:%g\n",difftime(t2,t1));
+	fprintf(stderr,"kernel metis time:%g\n",difftime(t2,t1));
 
 	gdsl_queue_t partitionResultQueue = gdsl_queue_alloc("partitionList",alloc_partitionResult,free_partitionResult); 
 
@@ -1295,7 +1295,6 @@ static void copyFromEliminationTreeToParallelETree(ParallelETree *dest, const El
 
 static void roughPartition(ParallelETree *tree, SparseDoubleMatrix *p, const SparseDoubleMatrix *g, const int goalPartition)
 {
-//	EliminationTree *treeTemp= createEliminationTree(goalPartition*2 + goalPartition+1);
 	EliminationTree *treeTemp= createEliminationTree(goalPartition*4);
 
 	time_t t1,t2;
@@ -1305,16 +1304,19 @@ static void roughPartition(ParallelETree *tree, SparseDoubleMatrix *p, const Spa
 	paritionMetis(treeTemp,g,goalPartition);
 	time(&t2);
 //	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+
 //	fprintf(stderr,"partition phase 2\n");
 	time(&t1);
 	getPermutation(p,treeTemp);
 	time(&t2);
 //	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+
 //	fprintf(stderr,"partition phase 3\n");
 	time(&t1);
 	renameingETree(treeTemp,p);
 	time(&t2);
 //	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+
 //	fprintf(stderr,"partition phase 4\n");
 	time(&t1);
 	copyFromEliminationTreeToParallelETree(tree,treeTemp);
@@ -1333,11 +1335,6 @@ static void roughPartition(ParallelETree *tree, SparseDoubleMatrix *p, const Spa
 static void refinePartition(SparseDoubleMatrix *pRefine,const ParallelETree *tree, const SparseDoubleMatrix *g)
 {
 	int i;
-//	SparseDoubleMatrix *gTrans = createSparseDoubleMatrix(g->totalRow,g->totalCol);
-//	SparseDoubleMatrix *gMap = createSparseDoubleMatrix(g->totalRow,g->totalCol);
-//	transSparseDoubleMatrix(gTrans,g);
-//	addSparseDoubleMatrix(gMap,g,gTrans);
-//	freeSparseDoubleMatrix(gTrans);
 
 	const SparseDoubleMatrix *gMap = g;
 
@@ -1371,7 +1368,6 @@ static void refinePartition(SparseDoubleMatrix *pRefine,const ParallelETree *tre
 //				fprintf(stderr,"kernel amd time:%g\n",difftime(t2,t1));
 
 				int j;
-
 				SparseDoubleMatrix *pCurrentNode = createSparseDoubleMatrix(num,num);
 				postorder2Permutation(pCurrentNode,pInt);
 				mergeSparseDoubleMatrix(pRefine,pCurrentNode,pRefine->totalRow,pRefine->totalCol,rowBegin,rowBegin);
@@ -1384,8 +1380,6 @@ static void refinePartition(SparseDoubleMatrix *pRefine,const ParallelETree *tre
 			}
 		}
 	}
-
-//	freeSparseDoubleMatrix(gMap);
 }
 
 
@@ -1444,28 +1438,31 @@ void static updatePermutationMatrix(SparseDoubleMatrix *pRefineP,const SparseDou
 
 SparseDoubleMatrix * partitionSparseDoubleMatrix(SparseDoubleMatrix *p,SparseDoubleMatrix *pTrans,ParallelETree *tree,const SparseDoubleMatrix *a,const int goalPartition,enum OOCFlag oocFlag)
 {
+	time_t t1,t2;
 	const int pid = getpid();
 	const int nodeNum = a->totalRow;
 
-	SparseDoubleMatrix *aRefine = createSparseDoubleMatrix(nodeNum,nodeNum);
-
-	roughPartition(tree,p,a,goalPartition);
-//	fprintf(stderr,"begin to roughly trans and permutation\n");
-	transSparseDoubleMatrix(pTrans,p);
-	permutateSparseDoubleMatrix(aRefine,p,pTrans,a);	
-
-//	fprintf(stderr,"end of trans and permutation\n");
-	time_t t1,t2;
-//	fprintf(stderr,"start to amd refinement\n");
+//	fprintf(stderr,"phase 1\n");
 	time(&t1);
-	SparseDoubleMatrix *pRefine = createSparseDoubleMatrix(nodeNum,nodeNum);
+	SparseDoubleMatrix *aRefine = createSparseDoubleMatrix(nodeNum,nodeNum);
+	roughPartition(tree,p,a,goalPartition);
 	time(&t2);
 //	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+
+//	fprintf(stderr,"phase 1.5\n");
+	time(&t1);
+	transSparseDoubleMatrix(pTrans,p);
+	permutateSparseDoubleMatrix(aRefine,p,pTrans,a);	
+	time(&t2);
+//	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+	
 //	fprintf(stderr,"phase 2\n");
 	time(&t1);
+	SparseDoubleMatrix *pRefine = createSparseDoubleMatrix(nodeNum,nodeNum);
 	refinePartition(pRefine,tree,aRefine);
 	time(&t2);
 //	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+	
 //	fprintf(stderr,"phase 3\n");
 	time(&t1);
 	updatePermutationMatrix(p,pRefine,p);
@@ -1473,10 +1470,12 @@ SparseDoubleMatrix * partitionSparseDoubleMatrix(SparseDoubleMatrix *p,SparseDou
 	transSparseDoubleMatrix(pTrans,p);
 	time(&t2);
 //	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+	
 //	fprintf(stderr,"phase 4\n");
 	time(&t1);
-
 	permutateSparseDoubleMatrix(aRefine,p,pTrans,a);	
+	time(&t2);
+//	fprintf(stderr,"time: %g\n",difftime(t2,t1));
 
 	return aRefine;
 
