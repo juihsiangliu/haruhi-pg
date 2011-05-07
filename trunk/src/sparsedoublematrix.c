@@ -1401,8 +1401,6 @@ void permutateSparseDoubleMatrix(SparseDoubleMatrix *dest, const SparseDoubleMat
 			const int row = pRow->colIndex[i]->colLink->row;
 			const int col = pCol->rowIndex[ptr->col]->rowLink->col;
 			setSparseDoubleMatrix(dest,ptr->data,row,col);
-
-			SparseDoubleElement *del = ptr;
 			ptr = ptr->rowLink;
 		}
 	}

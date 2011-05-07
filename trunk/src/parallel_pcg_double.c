@@ -92,7 +92,7 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 	FILE *fp2 = fopen("max_error.txt","w");
 
 	time_t t1,t2;
-	const double tol = 1e-4;
+	const double tol = 1e-3;
 //	const double max_err = 1e-5;
 	const double max_err = 1e-4;
 

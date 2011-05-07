@@ -495,34 +495,31 @@ static void setNode_phase_1(const CSR_SparseDoubleMatrix *partial_u,SparseDouble
 	const int *baseColU = ptr->baseColU;
 
 	int i,j;
-	double scale = 0.0;
-	double newLinkU = 0.0;
-	double scaledPartialUData = 0.0;
 	for(i=0;i<partial_u->totalRow;i++) // sweep partial_u row by row
 	{
 		for(j=0;j<u_link->totalRow;j++) // sweep u_link row by row
 		{
 			int partial_u_ptr = partial_u->rowPtr[i];
-			scale = getSparseDoubleMatrix(u_link,j,*base+i,"col")/partial_u->val[partial_u_ptr];
+			const double scale = getSparseDoubleMatrix(u_link,j,*base+i,"col")/partial_u->val[partial_u_ptr];
 			if(scale == 0.0)
 			{
 				delPidSparseDoubleMatrix(u_link,j,*base+i,pid);
 				continue;
 			}
-//			if( fabs(scale/partial_u->val[partial_u_ptr]) >= tol)
+			if( fabs(scale) >= fabs(tol*partial_u->val[partial_u_ptr]) )
 				setPidSparseDoubleMatrix(l_link,scale,j,*base+partial_u->col[partial_u_ptr]+col_offset,pid);
 			
-//			const double u_drop_val = getSparseDoubleMatrix(u_link,row,baseRowU[N]+row-baseColU[N],"row");
+			const double u_drop_val = getSparseDoubleMatrix(u_link,j,baseRowU[N]+j-baseColU[N],"row");
 			int k;
 			for(k=partial_u->rowPtr[i];k<partial_u->rowPtr[i+1];k++)
 			{
 				const int row = j;
 				const int col = *base + partial_u->col[k] + col_offset;
 				const double data = partial_u->val[k];
-				double linkU = getSparseDoubleMatrix(u_link,row,col,"row");
-				scaledPartialUData = scale * data;
-				newLinkU = linkU - scaledPartialUData;
-//				if(!dropPartialUij(newLinkU,tol,u_link,row,col,baseRowU,baseColU,N)) 
+				const double linkU = getSparseDoubleMatrix(u_link,row,col,"row");
+				const double scaledPartialUData = scale * data;
+				const double newLinkU = linkU - scaledPartialUData;
+				if( fabs(newLinkU) > fabs(tol*u_drop_val))
 					setPidSparseDoubleMatrix(u_link,newLinkU,row,col,pid);
 			}
 			delPidSparseDoubleMatrix(u_link,j,*base+i,pid);
@@ -559,7 +556,7 @@ static void setNode_phase_2(SparseDoubleMatrix *l_link,SparseDoubleMatrix *u_lin
 				delPidSparseDoubleMatrix(u_link,j,base + i,pid);
 				continue;
 			}
-			if( fabs(scale/pivotRowPtr->data) >= tol)
+			if( fabs(scale) >= fabs(tol*pivotRowPtr->data))
 				setPidSparseDoubleMatrix(l_link,scale,j,pivotRowPtr->col,pid);
 
 			const int row = j;
@@ -571,8 +568,7 @@ static void setNode_phase_2(SparseDoubleMatrix *l_link,SparseDoubleMatrix *u_lin
 				double linkU = getSparseDoubleMatrix(u_link,row,col,"row");
 				scaledPartialUData = scale * data;
 				newLinkU = linkU - scaledPartialUData;
-//				if( !dropPartialUij2(newLinkU,tol,u_link,row,col,baseRowU,baseColU,N,u_drop_val) )
-				if( fabs(newLinkU/u_drop_val) >= tol ) 
+				if( fabs(newLinkU) >= fabs(tol*u_drop_val) ) 
 					setPidSparseDoubleMatrix(u_link,newLinkU,row,col,pid);
 
 				pivotRowPtr = pivotRowPtr->rowLink;
