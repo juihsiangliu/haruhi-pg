@@ -405,11 +405,9 @@ static void test()
 int main(int argc, char *argv[])
 {
 	// mempool init
-//	int list[26] = {512,4*65536,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
-//	createMempoolSet(16,26,list,128); // 0 is used for "main thread", threadNum+1 is used for "extra-root thread"
-	int list[28] = {512,512,512,4*65536,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
-	createMempoolSet(4,28,list,128); // 0 is used for "main thread", threadNum+1 is used for "extra-root thread"
-//	createMempoolSet(16,26,list,512); // 0 is used for "main thread", threadNum+1 is used for "extra-root thread"
+//	createMempoolSet(128); // 0 is used for "main thread", threadNum+1 is used for "extra-root thread"
+	const int list[4] = {512,512,512,4*65536};
+	createMempoolSet(4,4,list,128);
 
 //=======================================================
 	if(argc == 1)
