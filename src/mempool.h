@@ -20,7 +20,6 @@ struct Mempool
 	// to the free block list  -- with heap data structure
 	Dqueue *dqueue;
 	int count; 
-	int malloc_count;
 
 	pthread_mutex_t mutex;
 };
@@ -33,12 +32,10 @@ struct MempoolSet
 {
 	int minBlockSize;
 	int maxBlockSize;
-//	int hugeBlockSize;
 	int numOfPool;
 	int lgMinBlockSize;
 
 	Mempool **poolSet;
-	Mempool *huge; // for the very big blockSize
 };
 
 typedef struct MempoolSet MempoolSet;

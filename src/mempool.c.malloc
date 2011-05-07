@@ -1,0 +1,91 @@
+#include "mempool.h"
+
+static MempoolSet * _pool = NULL;
+
+
+
+static void dumpMempool(FILE *fp,const Mempool *pool)
+{
+	fprintf(fp,"count = %d\n",pool->count);
+}
+
+
+
+static Mempool *createMempool()
+{
+	Mempool *pool = (Mempool *)malloc(sizeof(Mempool));
+	pool->count = 0;
+	return pool;
+}
+
+
+
+static void freeMempool(Mempool *pool)
+{
+	free(pool);
+}
+
+
+
+void createMempoolSet(const int minBlockSize,const int numOfMempool,const int *const numOfBlockList,const int poolListSize)
+//void createMempoolSet(const int numOfMempool)
+{
+	int i;
+	_pool = (MempoolSet *)malloc(sizeof(MempoolSet));
+	_pool->poolSet = malloc(sizeof(Mempool *)*numOfMempool);
+	for(i=0;i<numOfMempool;i++) _pool->poolSet[i] = createMempool();
+	_pool->numOfPool = numOfMempool;
+}
+
+
+
+void freeMempoolSet()
+{
+	int i;
+	for(i=0;i<_pool->numOfPool;i++) freeMempool(_pool->poolSet[i]);
+	free(_pool->poolSet);
+	free(_pool);
+}
+
+
+void clearPidMempoolSet(const int pid)
+{
+}
+
+
+void *getMempoolSet(const int blockSize)
+{
+	return getPidMempoolSet(blockSize,0);
+}
+
+
+void *getPidMempoolSet(const int blockSize,const int pid)
+{
+	_pool->poolSet[pid%_pool->numOfPool]->count++;
+	return malloc(blockSize);
+}
+
+
+
+void retMempoolSet(void *data, const int blockSize)
+{
+	retPidMempoolSet(data,blockSize,0);
+}
+
+void retPidMempoolSet(void *data, const int blockSize,const int pid)
+{
+	_pool->poolSet[pid%_pool->numOfPool]->count--;
+	free(data);
+}
+
+
+void usageMempoolSet(FILE *fp)
+{
+	int i;
+	for(i=0;i<_pool->numOfPool;i++)
+	{
+		fprintf(fp,"pool = %d\t",i);
+		dumpMempool(fp,_pool->poolSet[i]);
+	}
+
+}
