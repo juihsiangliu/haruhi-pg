@@ -118,12 +118,13 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 		time(&t1);
 		SparseDoubleMatrix *l = createSparseDoubleMatrix(a->totalRow,a->totalRow);
 		SparseDoubleMatrix *u = createSparseDoubleMatrix(a->totalRow,a->totalCol);
-		iluSparseDoubleMatrix(l,u,aRefine,tol);
+		// un-comment following to perform PCG
+//		iluSparseDoubleMatrix(l,u,aRefine,tol);
 		freeSparseDoubleMatrix(aRefine);
 
 		// un-comment following to perform CG
-//		identitySparseDoubleMatrix(l);
-//		identitySparseDoubleMatrix(u);
+		identitySparseDoubleMatrix(l);
+		identitySparseDoubleMatrix(u);
 		
 		l_csr = sparse2CSR(l,0);
 		freeSparseDoubleMatrix(l);
@@ -140,7 +141,7 @@ void parallelPCG(const SparseDoubleMatrix *a, const double *b,double *sol,const 
 		ParallelETree *tree = createParallelETree(goalPartition*4);
 		SparseDoubleMatrix *aRefine = partitionSparseDoubleMatrix(p,pTrans,tree,a,goalPartition,oocFlag);
 		time(&t2);
-		fprintf(stderr,"reorder time: %g\n",difftime(t2,t1));
+		fprintf(stderr,"reorder+partition time: %g\n",difftime(t2,t1));
 		time(&t1);
 		SparseDoubleMatrix *l = createSparseDoubleMatrix(a->totalRow,a->totalRow);
 		SparseDoubleMatrix *u = createSparseDoubleMatrix(a->totalRow,a->totalCol);

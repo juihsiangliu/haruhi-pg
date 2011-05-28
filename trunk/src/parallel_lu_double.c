@@ -1439,7 +1439,7 @@ static void *read_mtx(void *par)
 		int postorderCounter = 0;
 		for(i=0;i<ptr->treeInternalSize;i++)
 		{
-			while(*(ptr->readFlag) - *(ptr->freeFlag) >= 1) usleep(1000);
+			while(*(ptr->readFlag) - *(ptr->freeFlag) >= 4) usleep(1000);
 			time(&t1);
 			ptr->mtx_list[i] = linus_read_to_CSR_SparseDoubleMatrix(ptr->oocInfoList[ptr->base+ptr->postorder[postorderCounter]].name,ptr->postorder[postorderCounter]);
 //			ptr->mtx_list[i] = read_to_CSR_SparseDoubleMatrix(ptr->oocInfoList[ptr->base+ptr->postorder[postorderCounter]].name,ptr->postorder[postorderCounter]);
@@ -1456,7 +1456,7 @@ static void *read_mtx(void *par)
 		int postorderCounter = ptr->treeInternalSize-1;
 		for(i=ptr->treeInternalSize-1;i>=0;i--)
 		{
-			while(*(ptr->readFlag) - *(ptr->freeFlag) >= 1) usleep(1000);
+			while(*(ptr->readFlag) - *(ptr->freeFlag) >= 4) usleep(1000);
 			time(&t1);
 			ptr->mtx_list[i] = linus_read_to_CSR_SparseDoubleMatrix(ptr->oocInfoList[ptr->base+ptr->postorder[postorderCounter]].name,ptr->postorder[postorderCounter]);
 //			ptr->mtx_list[i] = read_to_CSR_SparseDoubleMatrix(ptr->oocInfoList[ptr->base+ptr->postorder[postorderCounter]].name,ptr->postorder[postorderCounter]);
@@ -1556,11 +1556,11 @@ static void solve_Ly_b(double *y,struct OOCInfo *oocInfoList, const double *b,co
 //			fprintf(stderr,"solve %d time %g\n",postorderCounter-1,difftime(t2,t1));
 		}
 	}
+	pthread_join(pid[0],NULL);
+	pthread_join(pid[1],NULL);
 	retMempoolSet(pipePar,sizeof(PipeSolve));
 	retMempoolSet(l_list,sizeof(CSR_SparseDoubleMatrix *)*treeInternalSize);
 	retMempoolSet(pb,sizeof(double)*p->totalRow);
-	pthread_join(pid[0],NULL);
-	pthread_join(pid[1],NULL);
 }
 
 
@@ -1622,11 +1622,11 @@ static void solve_Ux_y(double *x,struct OOCInfo *oocInfoList, const double *y,co
 		int col = pTrans->rowIndex[i]->rowLink->col;
 		x[i] = xTemp[col];
 	}
+	pthread_join(pid[0],NULL);
+	pthread_join(pid[1],NULL);
 	retMempoolSet(xTemp,sizeof(double)*pTrans->totalRow);
 	retMempoolSet(u_list,sizeof(CSR_SparseDoubleMatrix *)*treeInternalSize);
 	retMempoolSet(pipePar,sizeof(PipeSolve));
-	pthread_join(pid[0],NULL);
-	pthread_join(pid[1],NULL);
 }
 
 

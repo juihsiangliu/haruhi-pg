@@ -9,8 +9,8 @@ HEADUFCONFIG = ../lib/UFconfig/
 # HEADMETIS = ../lib/metis-4.0/Lib/
 # LIBMETIS = ../lib/metis-4.0/libmetis.a
 
-HEADMETIS = ../lib/metis-5.0pre2/include/
-LIBMETIS = ../lib/metis-5.0pre2/libmetis.a
+ HEADMETIS = ../lib/metis-5.0pre2/include/
+ LIBMETIS = ../lib/metis-5.0pre2/libmetis.a
 
 haruhi-pg: haruhi_pg.o mempool.o sparsedoublematrix.o solvesparsedoublematrix.o dqueue.o partition_double.o mymatrix.o parallel_common.o parallel_lu_double.o postorder.o parse_spice.o union_find.o parallel_pcg_double.o parallel.o
 	gcc -static -o ../bin/haruhi-pg -O2 haruhi_pg.o mempool.o sparsedoublematrix.o solvesparsedoublematrix.o dqueue.o partition_double.o mymatrix.o parallel_lu_double.o parallel_common.o postorder.o parse_spice.o union_find.o parallel_pcg_double.o parallel.o ${LIBGDSL} ${LIBAMD} ${LIBMETIS} ${LIBGSL} -lm -lpthread 

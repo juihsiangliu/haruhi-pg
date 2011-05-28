@@ -6,9 +6,6 @@ static MempoolSet ** _poolList = NULL;
 static int _poolListSize = 0;
 
 
-static const int _2M = 2*1024*1024;
-static const int _4M = 4*1024*1024;
-static const int _8M = 8*1024*1024;
 
 
 //==================================================
@@ -234,6 +231,7 @@ static void *getMempoolSetKernel(MempoolSet *ptr,const int blockSize)
 
 static void retMempoolSetKernel(MempoolSet *ptr,void *data, const int blockSize)
 {
+
 	if(blockSize > ptr->maxBlockSize)
 	{
 		pthread_mutex_lock(&ptr->huge->mutex);
@@ -248,6 +246,7 @@ static void retMempoolSetKernel(MempoolSet *ptr,void *data, const int blockSize)
 		if(index < 0) index = 0;
 		retMempool(ptr->poolSet[index],data);
 	}
+
 }
 
 
@@ -297,7 +296,7 @@ void freeMempoolSet(void)
 
 void clearPidMempoolSet(const int pid)
 {
-	clearMempoolSetKernel(_poolList[pid%_poolListSize]);
+//	clearMempoolSetKernel(_poolList[pid%_poolListSize]);
 }
 
 
@@ -305,9 +304,13 @@ void clearPidMempoolSet(const int pid)
 
 void *getMempoolSet(const int blockSize)
 {
+
+	return getPidMempoolSet(blockSize,0);
+/*
 	void *ptr;
 	ptr =  getMempoolSetKernel(_pool,blockSize);
 	return ptr;
+*/
 }
 
 
@@ -315,16 +318,23 @@ void *getMempoolSet(const int blockSize)
 
 void *getPidMempoolSet(const int blockSize,const int pid)
 {
+/*
 	void *ptr;
 	ptr =  getMempoolSetKernel(_poolList[pid%_poolListSize],blockSize);
 	return ptr;
+*/
+	return malloc(blockSize);
 }
 
 
 
 void retMempoolSet(void *data, const int blockSize)
 {
-	retMempoolSetKernel(_pool,data,blockSize);
+
+//	retMempoolSetKernel(_pool,data,blockSize);
+	retPidMempoolSet(data,blockSize,0);
+
+//	free(data);
 }
 
 
@@ -332,19 +342,21 @@ void retMempoolSet(void *data, const int blockSize)
 
 void retPidMempoolSet(void *data, const int blockSize,const int pid)
 {
-	retMempoolSetKernel(_poolList[pid%_poolListSize],data,blockSize);
+	free(data);
+//	retMempoolSetKernel(_poolList[pid%_poolListSize],data,blockSize);
 }
 
 
 
 void dumpMempoolSet(FILE *fp)
 {
-	dumpMempoolSetKernel(fp,_pool);
+//	dumpMempoolSetKernel(fp,_pool);
 }
 
 
 void usageMempoolSet(FILE *fp)
 {
+/*
 	int j;
 
 	for(j=0;j<_poolListSize;j++)
@@ -357,6 +369,7 @@ void usageMempoolSet(FILE *fp)
 		}
 		fprintf(fp,"\n");
 	}
+*/
 }
 
 
