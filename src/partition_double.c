@@ -1447,7 +1447,7 @@ SparseDoubleMatrix * partitionSparseDoubleMatrix(SparseDoubleMatrix *p,SparseDou
 	SparseDoubleMatrix *aRefine = createSparseDoubleMatrix(nodeNum,nodeNum);
 	roughPartition(tree,p,a,goalPartition);
 	time(&t2);
-//	fprintf(stderr,"time: %g\n",difftime(t2,t1));
+	fprintf(stderr,"partition time: %g\n",difftime(t2,t1));
 
 //	fprintf(stderr,"phase 1.5\n");
 	time(&t1);

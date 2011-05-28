@@ -187,7 +187,9 @@ static void spice_input_file_direct_metis(SpiceMtx *spicePtr,int thread,enum OOC
 	freeOOCInfoList(oocInfoList);
 	
 	outputResult(stdout,spicePtr);
-	
+
+	if(oocFlag == ic) fprintf(stderr,"a->nnz:%d, l->nnz:%d\n",a->nnz,l->nnz);
+
 	// free the arrays
 	freeSparseDoubleMatrix(p);
 	freeSparseDoubleMatrix(pTrans);
@@ -405,9 +407,9 @@ static void test()
 int main(int argc, char *argv[])
 {
 	// mempool init
-//	createMempoolSet(128); // 0 is used for "main thread", threadNum+1 is used for "extra-root thread"
-	const int list[4] = {512,512,512,4*65536};
-	createMempoolSet(4,4,list,128);
+	const int list[28] = {512,512,512,4*65536,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
+	const int list2[4] = {512,512,512,4*65536};
+	createMempoolSet(4,28,list,128);
 
 //=======================================================
 	if(argc == 1)
