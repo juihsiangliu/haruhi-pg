@@ -66,7 +66,7 @@ static void freeMempool(Mempool *pool)
 
 static void clearMempool(Mempool *pool)
 {
-	pthread_mutex_lock(&(pool->mutex));
+//	pthread_mutex_lock(&(pool->mutex));
 	Dqueue *dqueue = pool->dqueue;
 	while(!isEmptyDqueue(dqueue))
 	{
@@ -74,7 +74,7 @@ static void clearMempool(Mempool *pool)
 		free(mem);
 		pool->malloc_count--;
 	}
-	pthread_mutex_unlock(&(pool->mutex));
+//	pthread_mutex_unlock(&(pool->mutex));
 }
 
 
@@ -87,7 +87,7 @@ static void clearMempool(Mempool *pool)
 // return a mem block from pool to user 
 static void *getMempool(Mempool *pool)
 {
-	pthread_mutex_lock(&(pool->mutex));
+//	pthread_mutex_lock(&(pool->mutex));
 	
 	if(isEmptyDqueue(pool->dqueue))
 	{
@@ -111,7 +111,7 @@ static void *getMempool(Mempool *pool)
 	void *ret = delTailDqueue(pool->dqueue);
 	pool->count++;
 	
-	pthread_mutex_unlock(&(pool->mutex));
+//	pthread_mutex_unlock(&(pool->mutex));
 
 	return ret;
 }
@@ -124,7 +124,7 @@ static void *getMempool(Mempool *pool)
 
 static void retMempool(Mempool *pool, void *data)
 {
-	pthread_mutex_lock(&pool->mutex);
+//	pthread_mutex_lock(&pool->mutex);
 
 	if(isFullDqueue(pool->dqueue))
 	{
@@ -136,7 +136,7 @@ static void retMempool(Mempool *pool, void *data)
 
 	pool->count--;
 
-	pthread_mutex_unlock(&(pool->mutex));
+//	pthread_mutex_unlock(&(pool->mutex));
 }
 
 
@@ -204,10 +204,10 @@ static void *getMempoolSetKernel(MempoolSet *ptr,const int blockSize)
 	void *ret = NULL;
 	if(blockSize > ptr->maxBlockSize)
 	{
-		pthread_mutex_lock(&ptr->huge->mutex);
+//		pthread_mutex_lock(&ptr->huge->mutex);
 		ret = malloc(blockSize);
 		ptr->huge->count++;
-		pthread_mutex_unlock(&ptr->huge->mutex);
+//		pthread_mutex_unlock(&ptr->huge->mutex);
 		if(ret == NULL)
 		{
 			fprintf(stderr,"not enough memory ... alloc huge fail\n");
@@ -234,10 +234,10 @@ static void retMempoolSetKernel(MempoolSet *ptr,void *data, const int blockSize)
 
 	if(blockSize > ptr->maxBlockSize)
 	{
-		pthread_mutex_lock(&ptr->huge->mutex);
+//		pthread_mutex_lock(&ptr->huge->mutex);
 		free(data);
 		ptr->huge->count--;
-		pthread_mutex_unlock(&ptr->huge->mutex);
+//		pthread_mutex_unlock(&ptr->huge->mutex);
 	}
 	else
 	{
@@ -296,7 +296,7 @@ void freeMempoolSet(void)
 
 void clearPidMempoolSet(const int pid)
 {
-//	clearMempoolSetKernel(_poolList[pid%_poolListSize]);
+	clearMempoolSetKernel(_poolList[pid%_poolListSize]);
 }
 
 
@@ -306,11 +306,6 @@ void *getMempoolSet(const int blockSize)
 {
 
 	return getPidMempoolSet(blockSize,0);
-/*
-	void *ptr;
-	ptr =  getMempoolSetKernel(_pool,blockSize);
-	return ptr;
-*/
 }
 
 
@@ -318,12 +313,8 @@ void *getMempoolSet(const int blockSize)
 
 void *getPidMempoolSet(const int blockSize,const int pid)
 {
-/*
-	void *ptr;
-	ptr =  getMempoolSetKernel(_poolList[pid%_poolListSize],blockSize);
-	return ptr;
-*/
-	return malloc(blockSize);
+	return  getMempoolSetKernel(_poolList[pid%_poolListSize],blockSize);
+//	return malloc(blockSize);
 }
 
 
@@ -331,9 +322,7 @@ void *getPidMempoolSet(const int blockSize,const int pid)
 void retMempoolSet(void *data, const int blockSize)
 {
 
-//	retMempoolSetKernel(_pool,data,blockSize);
 	retPidMempoolSet(data,blockSize,0);
-
 //	free(data);
 }
 
@@ -342,21 +331,21 @@ void retMempoolSet(void *data, const int blockSize)
 
 void retPidMempoolSet(void *data, const int blockSize,const int pid)
 {
-	free(data);
-//	retMempoolSetKernel(_poolList[pid%_poolListSize],data,blockSize);
+	retMempoolSetKernel(_poolList[pid%_poolListSize],data,blockSize);
+//	free(data);
 }
 
 
 
 void dumpMempoolSet(FILE *fp)
 {
-//	dumpMempoolSetKernel(fp,_pool);
+	dumpMempoolSetKernel(fp,_pool);
 }
 
 
 void usageMempoolSet(FILE *fp)
 {
-/*
+
 	int j;
 
 	for(j=0;j<_poolListSize;j++)
@@ -369,7 +358,7 @@ void usageMempoolSet(FILE *fp)
 		}
 		fprintf(fp,"\n");
 	}
-*/
+
 }
 
 
