@@ -177,7 +177,7 @@ static void spice_input_file_direct_metis(SpiceMtx *spicePtr,int thread,enum OOC
 	time(&t2);
 	fprintf(stderr,"lu time:%g\n",difftime(t2,t1));
 	freeParallelETree(tree);
-
+	
 	// tri solve
 	time(&t1);
 	if(oocFlag == ooc) oocTriSolveSparseDoubleMatrix(spicePtr->nodalVoltage,oocInfoList,p,pTrans,spicePtr->current);
@@ -224,6 +224,8 @@ static void spice_input_file_direct_amd(SpiceMtx *spicePtr)
 	luSparseDoubleMatrix(l,u,aRefine);
 	time(&t2);
 	fprintf(stderr,"lu time:%g\n",difftime(t2,t1));
+
+	fprintf(stderr,"a->nnz:%d, l->nnz:%d\n",aRefine->nnz,l->nnz);
 
 	time(&t1);
 	triSolveSparseDoubleMatrix(spicePtr->nodalVoltage,p,pTrans,l,u,spicePtr->current);
@@ -327,7 +329,7 @@ static void check(const SpiceMtx *spicePtr)
 
 static void outputArgList(FILE *fp)
 {
-	fprintf(fp,"haruhi_lu input_file {-ooc_flag [ooc|ic]} {-order_method [amd|metos]} {-solve_method [direct|iter]} {-thread [1|2|4|8]}\n");
+	fprintf(fp,"haruhi_lu input_file {-ooc_flag [ooc|ic]} {-order_method [amd|metis]} {-solve_method [direct|iter]} {-thread [1|2|4|8]}\n");
 	exit(0);
 }
 
