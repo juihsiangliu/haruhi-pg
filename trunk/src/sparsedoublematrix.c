@@ -479,7 +479,7 @@ void dumpSparseDoubleMatrix(FILE *fp,const SparseDoubleMatrix *ptr)
 //			fprintf(fp,"node: %p, rowLink: %p, colLink: %p\n",target,target->rowLink,target->colLink);
 //			fprintf(fp,"data = %g\n",target->data);
 
-			fprintf(fp,"%d %d %g\n",target->row,target->col,target->data);
+//			fprintf(fp,"%d %d %g\n",target->row,target->col,target->data);
 			target = target->rowLink;
 		}
 	}
